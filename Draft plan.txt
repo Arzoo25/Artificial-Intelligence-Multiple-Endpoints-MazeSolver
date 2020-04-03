@@ -1,0 +1,20 @@
+Main problem- Maze solving program
+
+Considerations:
+--> Setting up maze outline
+	-References from online existing maze blueprints in python and youtube videos
+--> Choice of algorithm - Starting with known ones like Depth First Search, Breadth First Search and A Star algorithm. Will further explore if time permits.
+--> Reading papers and using lecture notes and uploaded module material to understand implementation of DFS, BFS and A* mainly.
+
+External paper references:
+--> https://pdfs.semanticscholar.org/ac85/ed7c59e3d43990d0a510eb037ecd07d2b269.pdf
+--> maze solver sample solutions in GitHub for an idea of how to go about implementation
+--> https://ijcsmc.com/docs/papers/June2019/V8I6201905.pdf
+--> https://arxiv.org/pdf/1509.02709.pdf
+--> https://arrow.tudublin.ie/cgi/viewcontent.cgi?article=1063&context=itbj
+
+Plan of action:
+1. Create maze outline
+2. Implement algorithms
+3. Compare for best path and time taken
+4. Explore different algorithms
