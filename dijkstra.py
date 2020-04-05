@@ -161,4 +161,39 @@ def setup_maze(grid):                          # define a function called setup_
                 nodes[y][x] = Node(x, y)
                 start = (x, y)
 
+class Graph:
+    def __init__(self, graph, start, end):
+        self.graph = graph
+        self.start_node = graph[start[1]][start[0]]
+        self.end_node = graph[end[1]][end[0]]
 
+    def getNodes(self):
+        return [node for row in self.graph for node in row]
+
+    def getNeighbors(self, node):
+        neighbors = []
+        if (node.y != 0):
+            neighbors.append(self.graph[node.y - 1][node.x])
+        if (node.y != len(self.graph) - 1):
+            neighbors.append(self.graph[node.y + 1][node.x])
+        if (node.x != 0):
+            neighbors.append(self.graph[node.y][node.x - 1])
+        if (node.x != len(self.graph[node.y]) - 1):
+            neighbors.append(self.graph[node.y][node.x + 1])
+        return neighbors
+
+
+class Node:
+    tentative_distance = None
+    visited = False
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def distance_to(self, other):
+        return 1
+
+def endProgram():
+    wn.exitonclick()
+    sys.exit()
