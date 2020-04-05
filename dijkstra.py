@@ -197,3 +197,86 @@ class Node:
 def endProgram():
     wn.exitonclick()
     sys.exit()
+def dijkstra(graph):
+    start_node = graph.start_node
+    end_node = graph.end_node
+
+    unvisited = set(graph.getNodes())
+
+
+    start_node.temp_dist = 0
+    for node in unvisited:
+        if node and node is not start_node:
+            node.temp_dist = infinity
+
+    current_node = start_node
+
+    while not end_node.visited:
+
+        for neighbor in graph.getNeighbors(current_node):
+            if not neighbor or neighbor.visited:
+                continue
+            new_temp_dist = current_node.temp_dist + current_node.distance_to(neighbor)
+            if neighbor.temp_dist > new_temp_dist:
+                neighbor.temp_dist = new_temp_dist
+
+        current_node.visited = True
+            
+        green.goto((-588 + (current_node.x * 24)), (288 - (current_node.y * 24)))
+        unvisited.remove(current_node)
+
+        shortest_temp_dist = infinity
+        for node in unvisited:
+            if node and node.temp_dist < shortest_temp_dist:
+                shortest_temp_dist = node.temp_dist
+                current_node = node
+
+    return end_node.temp_dist
+
+def djikstraBackRoute(end_dist):
+        start_node = graph.graph[start[1]][start[0]]
+        end_node = graph.graph[end[1]][end[0]]
+
+        nodes = graph.getNodes()
+
+        for node in nodes:
+            if node:
+               node.visited = False
+
+        current_node = end_node
+        shortest_temp_dist = end_dist
+        # backtacking yellow path from end node to start node
+        while current_node is not start_node:
+        
+          neighbors = graph.getNeighbors(current_node)
+          for neighbor in neighbors:
+             if not neighbor or neighbor.visited:
+                continue
+             if neighbor.temp_dist < shortest_temp_dist:
+                shortest_temp_dist = neighbor.temp_dist
+                neighbor.visited = True
+                current_node = neighbor
+          yellow.goto((-588 + (current_node.x * 24)), (288 - (current_node.y * 24)))
+          yellow.stamp()
+        
+# set up classes
+maze = Maze()
+red = Red()
+blue = Blue()
+green = Green()
+yellow = Yellow()
+
+# setup lists
+walls = []
+path = []
+
+# main program starts here ####
+setup_maze(grid)
+
+graph = Graph(nodes, start, end)
+
+end_dist = dijkstra(graph)
+
+djikstraBackRoute(end_dist)
+
+wn.exitonclick()
