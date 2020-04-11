@@ -81,7 +81,7 @@ grid1 = [
 "+      ++ +++++++++++     ++          ++    +++++++",
 "+++++++++++++++++++++++++++++++++++++++++++++++++++",
  ]
-
+#setup maze grid
 def maze_outline(grid):
     global start_x, start_y, end_x, end_y
     for y in range(len(grid)):
@@ -114,6 +114,7 @@ def endProgram():
     wn.exitonclick()
     sys.exit()
     
+#run algorithm function
 def DFS(x,y):
     stack.append((x, y))
     solution[x,y] = x,y
