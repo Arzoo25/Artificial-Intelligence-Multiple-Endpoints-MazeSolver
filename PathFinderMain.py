@@ -1,0 +1,549 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Apr 11 09:17:52 2020
+
+@author: Rohit
+"""
+
+import turtle                    # import turtle library
+import time
+from collections import deque
+
+
+choice = int(input("BFS-1,DFS-2,A star-3,modifiedBFS-4,modifiedDFS-5:"))
+grid_Choice = int(input("single endpoint-1, two endpoints-2, three endpoints-3:"))
+wn = turtle.Screen()               # define the turtle screen
+wn.bgcolor("black")                # set the background colour
+wn.title("Path Finder")
+wn.setup(1300,700)                  # setup the dimensions of the working window
+
+class Maze(turtle.Turtle):               
+    def __init__(self):
+        turtle.Turtle.__init__(self)
+        self.shape("square")
+        self.color("white")
+        self.penup()
+        self.speed(0)
+
+class Green(turtle.Turtle):
+    def __init__(self):
+        turtle.Turtle.__init__(self)
+        self.shape("square")
+        self.color("green")
+        self.penup()
+        self.speed(0)
+
+class Red(turtle.Turtle):
+    def __init__(self):
+        turtle.Turtle.__init__(self)
+        self.shape("square")
+        self.color("red")
+        self.penup()
+        self.speed(0)
+
+class Yellow(turtle.Turtle):
+    def __init__(self):
+        turtle.Turtle.__init__(self)
+        self.shape("square")
+        self.color("yellow")
+        self.penup()
+        self.speed(0)
+class Node():
+
+    def __init__(self, parent=None, position=None):
+        self.parent = parent
+        self.position = position
+
+        self.g = 0
+        self.h = 0
+        self.f = 0
+
+    def __eq__(self, other):
+        return self.position == other.position
+    def __hash__(self):               #<-- added a hash method
+        return hash(self.position)
+
+grid1 = [
+"+++++++++++++++++++++++++++++++++++++++++++++++++++",
+"+               +                                 +",
+"+  ++++++++++  +++++++++++++  +++++++  ++++++++++++",
+"+s          +                 +               ++  +",
+"+  +++++++                                        +",
+"+  +                    +  +                 +++  +",
+"+             +   ++++  +  +  +++++++++++++  +++  +",
+"+  +  +           +        +  +  +        +       +",
+"+  +  ++++  +  ++++++++++  +  +  ++++  +  +  ++   +",
+"+  +     +  +          +   +           +  +  ++  ++",
+"+  ++++  +                    +++++++++++++  ++  ++",
+"+     +  +     +              +              ++   +",
+"++++  +                          ++++++++++  +++  +",
+"+  +  +                    +     +     +  +  +++  +",
+"+  +  ++++                                    +   +",
+"+  +                    +  +  +     +     +  ++  ++",
+"+  +  +                          ++++++++++  ++  ++",
+"+                       +  +  +              ++  ++",
+"+ ++++++                                   e+++  ++",
+"+ ++++++                                         ++",
+"+ +    +    +++ +     +++++++++ ++  +++++++    + ++",
+"+ ++++ ++++ +++ + +++ +++    ++    ++    ++ ++ + ++",
+"+ ++++    +     + +++ +++ ++ ++++++++ ++ ++ ++   ++",
+"+      ++ +++++++++++     ++          ++    +++++++",
+"+++++++++++++++++++++++++++++++++++++++++++++++++++",
+ ]
+
+grid2 = [
+"+++++++++++++++++++++++++++++++++++++++++++++++++++",
+"+               +                                 +",
+"+  ++++++++++  +++++++++++++  +++++++  ++++++++++++",
+"+s          +                 +               ++  +",
+"+  +++++++  +++++++++++++  +++++++++++++++++++++  +",
+"+  +     +  +           +  +                 +++  +",
+"+  +  +  +  +  +  ++++  +  +  +++++++++++++  +++  +",
+"+  +  +  +  +  +  +        +  +  +        +       +",
+"+  +  ++++  +  ++++++++++  +  +  ++++  +  +  ++   +",
+"+  +     +  +          +   +         e +  +  ++  ++",
+"+  ++++  +  +++++++ ++++++++  +++++++++++++  ++  ++",
+"+     +  +     +              +              ++   +",
+"++++  +  ++++++++++ +++++++++++  ++++++++++  +++  +",
+"+  +  +                    +     +     +  +  +++  +",
+"+  +  ++++  +++++++++++++  +  ++++  +  +  +  ++   +",
+"+  +  +     +     +     +  +  +     +     +  ++  ++",
+"+  +  +  +++++++  ++++  +  +  +  ++++++++++  ++  ++",
+"+e                      +  +  +              ++  ++",
+"+ ++++++             +  +  +  +  +++        +++  ++",
+"+ ++++++ ++++++ +++++++++    ++ ++   ++++++++++  ++",
+"+ +    +    +++ +     +++++++++ ++  +++++++    + ++",
+"+ ++++ ++++ +++ + +++ +++    ++    ++    ++ ++ + ++",
+"+ ++++    +     + +++ +++ ++ ++++++++ ++ ++ ++   ++",
+"+      ++ +++++++++++     ++          ++    +++++++",
+"+++++++++++++++++++++++++++++++++++++++++++++++++++",
+ ]
+
+
+grid3 = [
+"+++++++++++++++++++++++++++++++++++++++++++++++++++",
+"+               +                                 +",
+"+  ++++++++++  +++++++++++++           ++++++++++++",
+"+s          +                 +               ++  +",
+"+  +++++++  +++       +++  ++++++++    +++++++++  +",
+"+  +     +  +         e +  +                 +++  +",
+"+  +  +  +  +  +  ++++  +  +  +++++++++++++  +++  +",
+"+  +  +  +  +  +  +        +  +  +        +       +",
+"+  +  ++++  +  ++++++++++  +  +  ++++  +  +  ++   +",
+"+  +     +  +          +   +           +  +  ++  ++",
+"+  ++++  +  +++++++ ++++++++  +++++++++++++  ++  ++",
+"+     +  +     +              +              ++   +",
+"++++  +  ++++++++++ +++++++++++             e+++  +",
+"+  +  +                    +     +     +  +  +++  +",
+"+  +  ++++  +++++++++++++  +  ++++  +  +  +  ++   +",
+"+  +  +     +     +     +  +  +     +     +  ++  ++",
+"+  +  +  +++++++  ++++  +  +  +  ++++++++++  ++  ++",
+"+ e                     +  +  +              ++  ++",
+"+ ++++++             +  +  +  +  +++        +++  ++",
+"+ ++++++ ++++++ +++++++++    ++ ++   ++++++++++  ++",
+"+ +    +    +++ +     +++++++++ ++  +++++++    + ++",
+"+ ++++ ++++ +++ + +++ +++    ++    ++    ++ ++ + ++",
+"+ ++++    +     + +++ +++ ++ ++++++++ ++ ++ ++   ++",
+"+      ++ +++++++++++     ++          ++    +++++++",
+"+++++++++++++++++++++++++++++++++++++++++++++++++++",
+ ]
+
+def setup_maze(grid):
+    global start_x, start_y
+    for y in range(len(grid)):
+        for x in range(len(grid[y])):
+            character = grid[y][x]
+            screen_x = -588 + (x * 24)
+            screen_y = 288 - (y * 24)
+
+            if character == "+":
+                maze.goto(screen_x, screen_y)
+                maze.stamp()
+                walls.append((screen_x, screen_y))
+
+            if character == " " or character == "e":
+                path.append((screen_x, screen_y))
+
+            if character == "e":
+                green.goto(screen_x, screen_y)
+                end.append((screen_x,screen_y))
+                green.stamp()
+                green.color("green")
+
+            if character == "s":
+                start_x, start_y = screen_x, screen_y
+                red.goto(screen_x, screen_y)
+                red.stamp()
+
+def BFS(x,y,end_x,end_y):
+    frontier.append((x, y))
+    result = {}
+    result[x,y] = x,y
+
+    while len(frontier) > 0:
+        time.sleep(0)
+        x, y = frontier.popleft()
+        if(x - 24, y) in path and (x - 24, y) not in visited:
+            cell = (x - 24, y)
+            result[cell] = x, y
+            frontier.append(cell)   
+            visited.add((x-24, y))
+
+        if (x, y - 24) in path and (x, y - 24) not in visited:
+            cell = (x, y - 24)
+            result[cell] = x, y
+            frontier.append(cell)
+            visited.add((x, y - 24))
+
+        if(x + 24, y) in path and (x + 24, y) not in visited:
+            cell = (x + 24, y)
+            result[cell] = x, y
+            frontier.append(cell)
+            visited.add((x +24, y))
+
+        if(x, y + 24) in path and (x, y + 24) not in visited:
+            cell = (x, y + 24)
+            result[cell] = x, y
+            frontier.append(cell)
+            visited.add((x, y + 24))
+        green.goto(x,y)
+        green.stamp()
+        if (x,y) == (end_x,end_y):
+            break
+    return result
+
+def DFS(x,y,end_x, end_y):
+    stack.append((x, y))
+    result = {}
+    result[x,y] = x,y
+
+    while len(stack) > 0:
+        time.sleep(0)
+        x, y = stack.pop()
+        if(x - 24, y) in path and (x - 24, y) not in visited:
+            cell = (x - 24, y)
+            result[cell] = x, y
+            stack.append(cell)   
+            visited.add((x-24, y))
+
+        if (x, y - 24) in path and (x, y - 24) not in visited:
+            cell = (x, y - 24)
+            result[cell] = x, y
+            stack.append(cell)
+            visited.add((x, y - 24))
+
+        if(x + 24, y) in path and (x + 24, y) not in visited:
+            cell = (x + 24, y)
+            result[cell] = x, y
+            stack.append(cell)
+            visited.add((x +24, y))
+
+        if(x, y + 24) in path and (x, y + 24) not in visited:
+            cell = (x, y + 24)
+            result[cell] = x, y
+            stack.append(cell)
+            visited.add((x, y + 24))
+        green.goto(x,y)
+        green.stamp()
+        if (x,y) == (end_x,end_y):
+            break
+    return result
+
+def astar(start_x, start_y, end_x, end_y):
+    start_node = Node(None, (start_x,start_y))
+    start_node.g = start_node.h = start_node.f = 0
+    end_node = Node(None, (end_x,end_y))
+    end_node.g = end_node.h = end_node.f = 0
+    open_list = []
+    closed_list = set()
+    open_list.append(start_node)
+    while len(open_list) > 0:
+        current_node = open_list[0]
+        time.sleep(0)
+        current_index = 0
+        for index, item in enumerate(open_list):
+            if item.f < current_node.f:
+                current_node = item
+                current_index = index
+        open_list.pop(current_index)
+        closed_list.add(current_node)
+        if current_node == end_node:
+            current = current_node
+            while current is not None:
+                track.append(current.position)
+                current = current.parent
+            return track[::-1]
+        green.goto(current_node.position)
+        green.stamp()
+        children = []
+        for new_position in [(0, -24), (0, 24), (-24, 0), (24, 0), (-24, -24), (-24, 24), (24, -24), (24, 24)]: # Adjacent squares
+            node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
+            if node_position in walls:
+                continue
+            new_node = Node(current_node, node_position)
+            children.append(new_node)
+        for child in children:
+            if child in closed_list:
+                continue
+            child.g = current_node.g + 24
+            child.h = ((child.position[0] - end_node.position[0])**2)+ ((child.position[1] - end_node.position[1])**2)
+            child.f = child.g + child.h
+            for open_node in open_list:
+                if child == open_node and child.g > open_node.g:
+                    continue
+            open_list.append(child)
+            red.goto(child.position)
+            red.stamp()
+
+def Modified_BFS(x,y,end_x,end_y):
+    frontier.append((x,y))
+    result = {}
+    result[x,y] = x,y
+
+    while len(frontier) > 0:
+        time.sleep(0)
+        distance = {}
+        x, y = frontier.popleft()
+        if(x - 24, y) in path and (x - 24, y) not in visited:
+            cell = (x - 24, y)
+            result[cell] = x, y
+            distance[cell] =  abs(x-24 - end_x)+abs(y  -end_y)
+            visited.add((x-24, y))
+        
+        if(x - 24, y + 24) in path and (x - 24, y + 24) not in visited:
+            cell = (x - 24, y + 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x-24 - end_x)+abs(y + 24  -end_y)
+            visited.add((x-24, y + 24))
+            
+        if(x + 24, y + 24) in path and (x + 24, y + 24) not in visited:
+            cell = (x + 24, y + 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x+24 - end_x)+abs(y + 24  -end_y)
+            visited.add((x+24, y+24))
+        
+        if(x - 24, y - 24) in path and (x - 24, y - 24) not in visited:
+            cell = (x - 24, y - 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x-24 - end_x)+abs(y - 24  -end_y)
+            visited.add((x-24, y - 24))
+        
+        if(x + 24, y - 24) in path and (x + 24, y - 24) not in visited:
+            cell = (x + 24, y - 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x+24 - end_x)+abs(y - 24 -end_y)
+            visited.add((x+24, y - 24))
+
+        if (x, y - 24) in path and (x, y - 24) not in visited:
+            cell = (x, y - 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x - end_x)+abs(y - 24  -end_y)
+            visited.add((x, y - 24))
+
+        if(x + 24, y) in path and (x + 24, y) not in visited:
+            cell = (x + 24, y)
+            result[cell] = x, y
+            distance[cell] =  abs(x + 24 - end_x)+abs(y  -end_y)
+            visited.add((x +24, y))
+
+        if(x, y + 24) in path and (x, y + 24) not in visited:
+            cell = (x, y + 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x - end_x)+abs(y + 24 -end_y)
+            visited.add((x, y + 24))
+        sorteddict = sorted(distance.items())
+        for xy in sorteddict:
+            frontier.append(xy[0])
+        green.goto(x,y)
+        green.stamp()
+        if (x,y) == (end_x,end_y):
+            break
+    return result
+
+def Modified_DFS(x,y,end_x, end_y):
+    stack.append((x, y))
+    result = {}
+    result[x,y] = x,y
+
+    while len(stack) > 0:
+        time.sleep(0)
+        distance = {}
+        x, y = stack.pop()
+        if(x - 24, y) in path and (x - 24, y) not in visited:
+            cell = (x - 24, y)
+            result[cell] = x, y
+            distance[cell] =  abs(x-24 - end_x)+abs(y  -end_y)
+            visited.add((x-24, y))
+        
+        if(x - 24, y + 24) in path and (x - 24, y + 24) not in visited:
+            cell = (x - 24, y + 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x-24 - end_x)+abs(y + 24  -end_y)
+            visited.add((x-24, y + 24))
+            
+        if(x + 24, y + 24) in path and (x + 24, y + 24) not in visited:
+            cell = (x + 24, y + 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x+24 - end_x)+abs(y + 24  -end_y)
+            visited.add((x+24, y+24))
+        
+        if(x - 24, y - 24) in path and (x - 24, y - 24) not in visited:
+            cell = (x - 24, y - 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x-24 - end_x)+abs(y - 24  -end_y)
+            visited.add((x-24, y - 24))
+        
+        if(x + 24, y - 24) in path and (x + 24, y - 24) not in visited:
+            cell = (x + 24, y - 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x+24 - end_x)+abs(y - 24 -end_y)
+            visited.add((x+24, y - 24))
+
+        if (x, y - 24) in path and (x, y - 24) not in visited:
+            cell = (x, y - 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x - end_x)+abs(y - 24  -end_y)
+            visited.add((x, y - 24))
+
+        if(x + 24, y) in path and (x + 24, y) not in visited:
+            cell = (x + 24, y)
+            result[cell] = x, y
+            distance[cell] =  abs(x + 24 - end_x)+abs(y  -end_y)
+            visited.add((x +24, y))
+
+        if(x, y + 24) in path and (x, y + 24) not in visited:
+            cell = (x, y + 24)
+            result[cell] = x, y
+            distance[cell] =  abs(x - end_x)+abs(y + 24 -end_y)
+            visited.add((x, y + 24))
+        sorteddict = sorted(distance.items(), reverse = True)
+        for xy in sorteddict:
+            stack.append(xy[0])
+        green.goto(x,y)
+        green.stamp()
+        if (x,y) == (end_x,end_y):
+            break
+    return result
+
+def backRoute(x, y,startx,starty):
+    yellow.goto(x, y)
+    yellow.stamp()
+    while (x, y) != (startx,starty):
+        yellow.goto(solution[x, y])
+        yellow.stamp()
+        x, y = solution[x, y]
+
+def astarRoute(x, y,end_x, end_y):
+    yellow.goto(x, y)
+    yellow.stamp()
+    while (x, y) != (end_x, end_y):
+        x, y =paths.pop()
+        yellow.goto((x, y))
+        yellow.stamp()
+maze = Maze()
+red = Red()
+green = Green()
+yellow = Yellow()
+
+walls = []
+path = []
+solution = {}
+solutions = []
+paths = []
+end = []
+start = []
+dicti = {}
+mandist = []
+endnew=[]
+
+if grid_Choice == 1:
+      setup_maze(grid1)  
+if grid_Choice == 2:
+      setup_maze(grid2)
+if grid_Choice == 3:
+      setup_maze(grid3)
+
+for x  in end:
+    dist = abs(start_x - x[0])+abs(start_y  - x[1])
+    dicti[x] = dist
+    mandist.append(dist)
+mandist.sort()
+sortdict = sorted(dicti.items())
+for x in sortdict:
+    endnew.append(x[0])
+
+if choice == 1:
+    start_time = time.time()
+    for x in endnew:
+        start.append((start_x,start_y))
+        visited = set()
+        frontier = deque()
+        solutions.append(BFS(start_x,start_y, x[0],x[1]))
+        start_x = x[0]
+        start_y = x[1]
+    print((time.time() - start_time))
+    for x in [ele for ele in reversed(start)]:
+        y = endnew.pop()
+        solution = solutions.pop()
+        backRoute(y[0], y[1], x[0], x[1])
+if choice == 2:
+    start_time = time.time()
+    for x in endnew:
+        start.append((start_x,start_y))
+        visited = set()
+        stack = []
+        solutions.append(DFS(start_x,start_y, x[0],x[1]))
+        start_x = x[0]
+        start_y = x[1]
+    print((time.time() - start_time))
+    for x in [ele for ele in reversed(start)]:
+        y = endnew.pop()
+        solution = solutions.pop()
+        backRoute(y[0], y[1], x[0], x[1])
+if choice == 3:
+    start_time = time.time()
+    for x in endnew:
+        start.append((start_x,start_y))
+        visited = set()
+        track = []
+        astar(start_x,start_y, x[0],x[1])
+        solutions.append(track)
+        start_x = x[0]
+        start_y = x[1]
+    print((time.time() - start_time))
+    solutions = [ele for ele in reversed(solutions)]
+    endnew = [ele for ele in reversed(endnew)]
+    for x in start:
+        y = endnew.pop()
+        paths = solutions.pop()
+        astarRoute(x[0], x[1], y[0], y[1])
+if choice == 4:
+    start_time = time.time()
+    for x in endnew:
+        start.append((start_x,start_y))
+        visited = set()
+        frontier = deque()
+        solutions.append(Modified_BFS(start_x,start_y, x[0],x[1]))
+        start_x = x[0]
+        start_y = x[1]
+    print((time.time() - start_time))
+    for x in [ele for ele in reversed(start)]:
+        y = endnew.pop()
+        solution = solutions.pop()
+        backRoute(y[0], y[1], x[0], x[1])
+if choice == 5:
+    start_time = time.time()
+    for x in endnew:
+        start.append((start_x,start_y))
+        visited = set()
+        stack = []
+        solutions.append(Modified_DFS(start_x,start_y, x[0],x[1]))
+        start_x = x[0]
+        start_y = x[1]
+    print((time.time() - start_time))
+    for x in [ele for ele in reversed(start)]:
+        y = endnew.pop()
+        solution = solutions.pop()
+        backRoute(y[0], y[1], x[0], x[1])
+
+wn.exitonclick()
