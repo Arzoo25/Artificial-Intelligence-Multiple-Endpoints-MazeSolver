@@ -84,7 +84,7 @@ grid1 = [
  ]
 
 
-
+#setup maze grid
 def setup_maze(grid):
     global start_x, start_y
     for y in range(len(grid)):
@@ -117,6 +117,7 @@ def endProgram():
     wn.exitonclick()
     sys.exit()
 
+#run algorithm function for multiple points
 def DFS(x,y,end_x, end_y):
     stack.append((x, y))
     result = {}
