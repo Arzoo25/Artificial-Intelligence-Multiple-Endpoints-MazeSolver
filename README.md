@@ -1,4 +1,4 @@
-# ArtificialIntelligenceProject
+# Artificial Intelligence Project
 Maze Solver using:  Breadth First Search, Depth First Search, A star, Modified BFS, Modified DFS
 
 The initial approach was to start with a single endpoint and develop all the algorithms and then move on to multiple endpoints.
